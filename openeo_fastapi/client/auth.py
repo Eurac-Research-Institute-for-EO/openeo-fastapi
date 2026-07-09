@@ -16,7 +16,7 @@ from typing import List
 import requests
 from fastapi import Header, HTTPException
 from jose import jwt
-from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from openeo_fastapi.api.types import Error
 from openeo_fastapi.client.psql.engine import Filter, create, get_first_or_default
@@ -36,9 +36,9 @@ class User(BaseModel):
     oidc_sub: str
     created_at: datetime.datetime = datetime.datetime.now(datetime.UTC)
 
-    model_config = ConfigDict(from_attributes=True)
-        arbitrary_types_allowed = True
-        extra = "ignore"
+    model_config = ConfigDict(
+        from_attributes=True, arbitrary_types_allowed=True, extra="ignore"
+    )
 
     @classmethod
     def get_orm(cls):
@@ -104,13 +104,13 @@ class AuthToken(BaseModel):
     @field_validator("provider", mode="before")
     def check_provider(cls, v, values, **kwargs):
         if v == "":
-            raise ValidationError("Empty provider string.")
+            raise ValueError("Empty provider string.")
         return v
 
     @field_validator("token", mode="before")
     def check_token(cls, v, values, **kwargs):
         if v == "":
-            raise ValidationError("Empty token string.")
+            raise ValueError("Empty token string.")
         return v
 
     @classmethod
@@ -131,9 +131,10 @@ class IssuerHandler(BaseModel):
 
     @field_validator("issuer_uri", mode="before")
     def remove_trailing_slash(cls, v, values, **kwargs):
-        if v.endswith("/"):
-            return v.removesuffix("/")
-        return v
+        issuer_uri = str(v)
+        if issuer_uri.endswith("/"):
+            return issuer_uri.removesuffix("/")
+        return issuer_uri
 
     def _get_issuer_config(self):
         """Get the well known config of the issuer url.
@@ -203,8 +204,11 @@ class IssuerHandler(BaseModel):
             # EURAC FIX: Disable audience validation as Keycloak tokens have 'aud' set to 'account'
             # which doesn't match any expected audience. The issuer validation is still performed.
             payload = jwt.decode(
-                token, rsa_key, algorithms=ALGORITHMS, issuer=self.issuer_uri,
-                options={"verify_aud": False}
+                token,
+                rsa_key,
+                algorithms=ALGORITHMS,
+                issuer=self.issuer_uri,
+                options={"verify_aud": False},
             )
             return payload
 

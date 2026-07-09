@@ -1,9 +1,10 @@
 """Pydantic Models describing different api request and response bodies."""
 import uuid
 from enum import Enum
-from typing import Any, List, Optional, TypedDict, Union
+from typing import Any, List, Optional, Union
 
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field, field_validator
+from typing_extensions import TypedDict
 
 from openeo_fastapi.api.types import (
     Billing,
@@ -38,38 +39,44 @@ class Capabilities(BaseModel):
     backend_version: str = Field(
         ...,
         description="Version number of the back-end implementation.\nEvery change on back-end side MUST cause a change of the version number.",
-        example="1.1.2",
+        json_schema_extra={"example": "1.1.2"},
     )
     stac_version: str
     type: Optional[Type5] = Field(
         None,
         description="For STAC versions >= 1.0.0-rc.1 this field is required.",
-        example="Catalog",
+        json_schema_extra={"example": "Catalog"},
     )
     id: str = Field(
         ...,
         description="Identifier for the service.\nThis field originates from STAC and is used as unique identifier for the STAC catalog available at `/collections`.",
-        example="cool-eo-cloud",
+        json_schema_extra={"example": "cool-eo-cloud"},
     )
     title: str = Field(
-        ..., description="The name of the service.", example="Cool EO Cloud"
+        ...,
+        description="The name of the service.",
+        json_schema_extra={"example": "Cool EO Cloud"},
     )
     description: str = Field(
         ...,
         description="A description of the service, which allows the service provider to introduce the user to its service.\n[CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.",
-        example="This service is provided to you by [Cool EO Cloud Corp.](http://cool-eo-cloud-corp.com). It implements the full openEO API and allows to process a range of 999 EO data sets, including \n\n* Sentinel 1/2/3 and 5\n* Landsat 7/8\n\nA free plan is available to test the service. For further information please contact our customer service at [support@cool-eo-cloud-corp.com](mailto:support@cool-eo-cloud-corp.com).",
+        json_schema_extra={
+            "example": "This service is provided to you by [Cool EO Cloud Corp.](http://cool-eo-cloud-corp.com). It implements the full openEO API and allows to process a range of 999 EO data sets, including \n\n* Sentinel 1/2/3 and 5\n* Landsat 7/8\n\nA free plan is available to test the service. For further information please contact our customer service at [support@cool-eo-cloud-corp.com](mailto:support@cool-eo-cloud-corp.com)."
+        },
     )
     production: Optional[bool] = None
     endpoints: list[Endpoint] = Field(
         ...,
         description="Lists all supported endpoints. Supported are all endpoints, which are implemented, return a 2XX or 3XX HTTP status code and are fully compatible to the API specification. An entry for this endpoint (path `/` with method `GET`) SHOULD NOT be listed.",
-        example=[
-            {"path": "/collections", "methods": ["GET"]},
-            {"path": "/collections/{collection_id}", "methods": ["GET"]},
-            {"path": "/processes", "methods": ["GET"]},
-            {"path": "/jobs", "methods": ["GET", "POST"]},
-            {"path": "/jobs/{job_id}", "methods": ["GET", "DELETE", "PATCH"]},
-        ],
+        json_schema_extra={
+            "example": [
+                {"path": "/collections", "methods": ["GET"]},
+                {"path": "/collections/{collection_id}", "methods": ["GET"]},
+                {"path": "/processes", "methods": ["GET"]},
+                {"path": "/jobs", "methods": ["GET", "POST"]},
+                {"path": "/jobs/{job_id}", "methods": ["GET", "DELETE", "PATCH"]},
+            ]
+        },
     )
     billing: Optional[Billing] = Field(
         None,
@@ -79,44 +86,46 @@ class Capabilities(BaseModel):
     links: list[Link] = Field(
         ...,
         description="Links related to this service, e.g. the homepage of\nthe service provider or the terms of service.\n\nIt is highly RECOMMENDED to provide links with the\nfollowing `rel` (relation) types:\n\n1. `version-history`: A link back to the Well-Known URL\n(see `/.well-known/openeo`) to allow clients to work on\nthe most recent version.\n\n2. `terms-of-service`: A link to the terms of service. If\na back-end provides a link to the terms of service, the\nclients MUST provide a way to read the terms of service\nand only connect to the back-end after the user agreed to\nthem. The user interface MUST be designed in a way that\nthe terms of service are not agreed to by default, i.e.\nthe user MUST explicitly agree to them.\n\n3. `privacy-policy`: A link to the privacy policy (GDPR).\nIf a back-end provides a link to a privacy policy, the\nclients MUST provide a way to read the privacy policy and\nonly connect to the back-end after the user agreed to\nthem. The user interface MUST be designed in a way that\nthe privacy policy is not agreed to by default, i.e. the\nuser MUST explicitly agree to them.\n\n4. `service-desc` or `service-doc`: A link to the API definition.\nUse `service-desc` for machine-readable API definition and \n`service-doc` for human-readable API definition.\nRequired if full OGC API compatibility is desired.\n\n5. `conformance`: A link to the Conformance declaration\n(see `/conformance`). \nRequired if full OGC API compatibility is desired.\n\n6. `data`: A link to the collections (see `/collections`).\nRequired if full OGC API compatibility is desired.\n\nFor additional relation types see also the lists of\n[common relation types in openEO](#section/API-Principles/Web-Linking).",
-        example=[
-            {
-                "href": "http://www.cool-cloud-corp.com",
-                "rel": "about",
-                "type": "text/html",
-                "title": "Homepage of the service provider",
-            },
-            {
-                "href": "https://www.cool-cloud-corp.com/tos",
-                "rel": "terms-of-service",
-                "type": "text/html",
-                "title": "Terms of Service",
-            },
-            {
-                "href": "https://www.cool-cloud-corp.com/privacy",
-                "rel": "privacy-policy",
-                "type": "text/html",
-                "title": "Privacy Policy",
-            },
-            {
-                "href": "http://www.cool-cloud-corp.com/.well-known/openeo",
-                "rel": "version-history",
-                "type": "application/json",
-                "title": "List of supported openEO versions",
-            },
-            {
-                "href": "http://www.cool-cloud-corp.com/api/v1.0/conformance",
-                "rel": "conformance",
-                "type": "application/json",
-                "title": "OGC Conformance Classes",
-            },
-            {
-                "href": "http://www.cool-cloud-corp.com/api/v1.0/collections",
-                "rel": "data",
-                "type": "application/json",
-                "title": "List of Datasets",
-            },
-        ],
+        json_schema_extra={
+            "example": [
+                {
+                    "href": "http://www.cool-cloud-corp.com",
+                    "rel": "about",
+                    "type": "text/html",
+                    "title": "Homepage of the service provider",
+                },
+                {
+                    "href": "https://www.cool-cloud-corp.com/tos",
+                    "rel": "terms-of-service",
+                    "type": "text/html",
+                    "title": "Terms of Service",
+                },
+                {
+                    "href": "https://www.cool-cloud-corp.com/privacy",
+                    "rel": "privacy-policy",
+                    "type": "text/html",
+                    "title": "Privacy Policy",
+                },
+                {
+                    "href": "http://www.cool-cloud-corp.com/.well-known/openeo",
+                    "rel": "version-history",
+                    "type": "application/json",
+                    "title": "List of supported openEO versions",
+                },
+                {
+                    "href": "http://www.cool-cloud-corp.com/api/v1.0/conformance",
+                    "rel": "conformance",
+                    "type": "application/json",
+                    "title": "OGC Conformance Classes",
+                },
+                {
+                    "href": "http://www.cool-cloud-corp.com/api/v1.0/collections",
+                    "rel": "data",
+                    "type": "application/json",
+                    "title": "List of Datasets",
+                },
+            ]
+        },
     )
     output_formats: Optional[dict] = Field(
         None,
@@ -135,7 +144,7 @@ class MeGetResponse(BaseModel):
     default_plan: Optional[str] = Field(
         None,
         description="Name of the plan the user has subscribed to.\n\nOverrides the default plan of the back-end, but back-ends\nMAY also allow overriding this plan for each individual\nprocessing request (e.g. job or service) with the\ncorresponding `plan` property.",
-        example="free",
+        json_schema_extra={"example": "free"},
     )
     storage: Optional[Storage] = Field(
         None,
@@ -146,22 +155,30 @@ class MeGetResponse(BaseModel):
     links: Optional[list[Link]] = Field(
         None,
         description="Links related to the user profile, e.g. where payments\nare handled or the user profile could be edited.\n\nIt is RECOMMENDED to provide links with the following `rel` (relation) types:\n\n1. `payment`: A page where users can recharge their user account with money or credits.\n\n2. `edit-form`: Points to a page where the user can edit his user profile.\n\nFor additional relation types see also the lists of\n[common relation types in openEO](#section/API-Principles/Web-Linking).",
-        example=[
-            {"href": "https://example.openeo.org/john_doe/payment/", "rel": "payment"},
-            {"href": "https://example.openeo.org/john_doe/edit/", "rel": "edit-form"},
-            {
-                "href": "https://example.openeo.org/john_doe/",
-                "rel": "alternate",
-                "type": "text/html",
-                "title": "User profile",
-            },
-            {
-                "href": "https://example.openeo.org/john_doe.vcf",
-                "rel": "alternate",
-                "type": "text/vcard",
-                "title": "vCard of John Doe",
-            },
-        ],
+        json_schema_extra={
+            "example": [
+                {
+                    "href": "https://example.openeo.org/john_doe/payment/",
+                    "rel": "payment",
+                },
+                {
+                    "href": "https://example.openeo.org/john_doe/edit/",
+                    "rel": "edit-form",
+                },
+                {
+                    "href": "https://example.openeo.org/john_doe/",
+                    "rel": "alternate",
+                    "type": "text/html",
+                    "title": "User profile",
+                },
+                {
+                    "href": "https://example.openeo.org/john_doe.vcf",
+                    "rel": "alternate",
+                    "type": "text/vcard",
+                    "title": "vCard of John Doe",
+                },
+            ]
+        },
     )
 
 
@@ -399,12 +416,12 @@ class ProcessGraphWithMetadata(Process):
             POST (/validation)
     """
 
-    id: str = Field(default=None, alias="id")
+    id: Optional[str] = Field(default=None, alias="id")
     summary: Optional[Any] = None
     description: Optional[Any] = None
     parameters: Optional[Any] = None
     returns: Optional[Any] = None
-    process_graph: Any = None
+    process_graph: Optional[Any] = None
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -430,17 +447,17 @@ class ValidationPostResponse(BaseModel):
 class BatchJob(BaseModel):
     """Reponse model for GET (/jobs/{job_id})."""
 
-    job_id: uuid.UUID = Field(default=None, alias="id")
+    job_id: Optional[uuid.UUID] = Field(default=None, alias="id")
     title: Optional[str] = None
     description: Optional[str] = None
     process: Optional[ProcessGraphWithMetadata] = None
-    status: Status
+    status: Optional[Status] = None
     progress: Optional[float] = Field(
         None,
         description="Indicates the process of a running batch job in percent.\nCan also be set for a job which stopped due to an error or was canceled by the user. In this case, the value indicates the progress at which the job stopped. The Property may not be available for the status codes `created` and `queued`.\nSubmitted and queued jobs only allow the value `0`, finished jobs only allow the value `100`.",
-        example=75.5,
+        json_schema_extra={"example": 75.5},
     )
-    created: RFC3339Datetime
+    created: Optional[RFC3339Datetime] = None
     updated: Optional[RFC3339Datetime] = None
     plan: Optional[str] = None
     costs: Optional[float] = None
@@ -483,22 +500,22 @@ class JobsGetEstimateGetResponse(BaseModel):
     duration: Optional[str] = Field(
         None,
         description="Estimated duration for the operation. Duration MUST be specified as a ISO 8601 duration.",
-        example="P1Y2M10DT2H30M",
+        json_schema_extra={"example": "P1Y2M10DT2H30M"},
     )
     size: Optional[int] = Field(
         None,
         description="Estimated required storage capacity, i.e. the size of the generated files. Size MUST be specified in bytes.",
-        example=157286400,
+        json_schema_extra={"example": 157286400},
     )
     downloads_included: Optional[int] = Field(
         None,
         description="Specifies how many full downloads of the processed data are included in the estimate. Set to `null` for unlimited downloads, which is also the default value.",
-        example=5,
+        json_schema_extra={"example": 5},
     )
     expires: Optional[RFC3339Datetime] = Field(
         None,
         description="Time until which the estimate is valid, formatted as a [RFC 3339](https://www.rfc-editor.org/rfc/RFC3339Datetime.html) date-time.",
-        example="2020-11-01T00:00:00Z",
+        json_schema_extra={"example": "2020-11-01T00:00:00Z"},
     )
 
 
@@ -509,7 +526,7 @@ class JobsRequest(BaseModel):
     POST (/result)
     """
 
-    title: str = None
+    title: Optional[str] = None
     description: Optional[str] = None
     process: Optional[ProcessGraphWithMetadata] = None
     plan: Optional[str] = None
