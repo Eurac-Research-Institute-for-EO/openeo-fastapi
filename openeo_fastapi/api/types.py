@@ -75,7 +75,7 @@ class RFC3339Datetime(BaseModel):
     """Model to consistently represent datetimes as strings compliant to RFC3339Datetime."""
 
     __root__: str = Field(
-        description="", regex=r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z"
+        description="", pattern=r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z"
     )
 
     @validator("__root__", pre=True)
