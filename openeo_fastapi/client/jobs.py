@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 from fastapi import Depends, Response
 from fastapi.exceptions import HTTPException
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict, Extra
 from sqlalchemy.exc import IntegrityError
 
 from openeo_fastapi.api.models import (
@@ -87,7 +87,7 @@ class Job(BaseModel):
 
         orm_mode = True
         arbitrary_types_allowed = True
-        extra = Extra.ignore
+        model_config = ConfigDict(extra="ignore")
 
     @classmethod
     def get_orm(cls):
