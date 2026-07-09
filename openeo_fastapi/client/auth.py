@@ -11,7 +11,7 @@ import datetime
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 import requests
 from fastapi import Header, HTTPException
