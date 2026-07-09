@@ -3,7 +3,6 @@
 Classes:
     - OpenEOCore: Framework for defining the application logic that will passed onto the OpenEO Api.
 """
-
 from collections import namedtuple
 from typing import Optional
 from urllib.parse import urlunparse
@@ -31,6 +30,7 @@ from openeo_fastapi.client.jobs import JobsRegister
 from openeo_fastapi.client.processes import ProcessRegister
 from openeo_fastapi.client.settings import AppSettings
 
+
 APPLICATION_ENDPOINTS = [
     Endpoint(
         path="/",
@@ -52,6 +52,10 @@ APPLICATION_ENDPOINTS = [
         path="/file_formats",
         methods=["GET"],
     ),
+    Endpoint(
+        path="/udf_runtimes",
+        methods=["GET"]
+    )
 ]
 
 
@@ -92,10 +96,15 @@ class OpenEOCore:
         """
         registers = [self.collections, self.files, self.jobs, self.processes]
 
-        endpoints = self.endpoints
+        endpoints = list(self.endpoints)
+        seen = {(e.path, m) for e in endpoints for m in e.methods}
         for register in registers:
             if register:
-                endpoints.extend(register.endpoints)
+                for e in register.endpoints:
+                    for m in e.methods:
+                        if (e.path, m) not in seen:
+                            seen.add((e.path, m))
+                            endpoints.append(e)
         return endpoints
 
     def get_capabilities(self) -> Capabilities:
@@ -114,6 +123,7 @@ class OpenEOCore:
             billing=self.billing,
             links=self.links,
             endpoints=self._combine_endpoints(),
+            output_formats={k: v for k, v in self.get_file_formats().dict(exclude_none=True).get("output", {}).items()},
         )
 
     def get_credentials_oidc(self) -> CredentialsOidcGetResponse:
@@ -126,21 +136,27 @@ class OpenEOCore:
             providers=[
                 Provider(
                     id=self.settings.OIDC_ORGANISATION,
-                    title=self.settings.OIDC_PROVIDER_TITLE,
+                    title="EURAC Keycloak",
                     issuer=self.settings.OIDC_URL,
+                    # Only use standard scopes that EURAC Keycloak supports
+                    # Removed: eduperson_entitlement, eduperson_scoped_affiliation (EGI-specific)
+                    # Note: offline_access is requested by web editor for refresh tokens
                     scopes=[
                         "openid",
                         "email",
-                        "eduperson_entitlement",
-                        "eduperson_scoped_affiliation",
+                        "profile",
                     ],
                     default_clients=[
                         DefaultClient(
-                            id=self.settings.OIDC_CLIENT_ID,
+                            id="openeo-platform-default-client",
                             redirect_urls=[
                                 "https://editor.openeo.cloud/",
                                 "https://editor.openeo.org/",
                                 "http://localhost:1410/",
+                                "http://10.8.244.73:8080/",
+                                "http://localhost:8080/",
+                                "https://openeo.eurac.edu/editor/",
+                                "https://dev.openeo.eurac.edu/editor/",
                             ],
                             grant_types=[
                                 GrantType.authorization_code_pkce,
@@ -223,21 +239,28 @@ class OpenEOCore:
         return WellKnownOpeneoGetResponse(
             versions=[
                 Version(
-                    url=url, production=False, api_version=self.settings.OPENEO_VERSION
+                    api_version=self.settings.OPENEO_VERSION, url=url, production=False
                 )
             ]
         )
 
     def get_udf_runtimes(self) -> UdfRuntimesGetResponse:
-        """Get the supported file formats for processing input and output.
-
-        Raises:
-            HTTPException: Raises an exception with relevant status code and descriptive message of failure.
+        """Get the available UDF runtimes for this backend.
 
         Returns:
-            UdfRuntimesGetResponse: The metadata for the requested BatchJob.
+            UdfRuntimesGetResponse: The UDF runtimes available in this api deployment.
         """
-        raise HTTPException(
-            status_code=501,
-            detail=Error(code="FeatureUnsupported", message="Feature not supported."),
-        )
+        return {
+            "EOAP-CWL": {
+                "title": "EOAP-CWL",
+                "type": "language",
+                "default": "1",
+           "versions": {
+    "1": {
+        "description": "EOAP-CWL via Calrissian on Kubernetes",
+        "libraries": {}
+    }
+}
+
+            }
+        }

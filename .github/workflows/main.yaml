@@ -6,6 +6,7 @@ on:
       - 'docs/**'
     branches:
       - main
+      - dev
   pull_request:
     paths-ignore:
       - 'docs/**'
@@ -14,7 +15,7 @@ on:
   workflow_dispatch:
 
 env:
-  POETRY_VERSION: 1.7.1
+  POETRY_VERSION: 2.4.1
 
 jobs:
   tests:
@@ -23,27 +24,27 @@ jobs:
     strategy:
       matrix:
         os: [Ubuntu]
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.11", "3.12", "3.13"]
         include:
           - os: Ubuntu
-            image: ubuntu-22.04
+            image: ubuntu-24.04
       fail-fast: false
     defaults:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install Postgresql 15 for unit tests
-        id: install-postgres-15
+      - name: Install Postgresql 16 for unit tests
+        id: install-postgres-16
         run: |
             sudo apt-get update -qy && \
             sudo apt install -qy postgresql
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -71,6 +72,6 @@ jobs:
         run: poetry run pytest --cov=openeo-fastapi --cov-report=xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           files: ./coverage.xml

@@ -118,6 +118,10 @@ class Capabilities(BaseModel):
             },
         ],
     )
+    output_formats: Optional[dict] = Field(
+        None,
+        description="Map of supported output file formats.",
+    )
 
 
 class MeGetResponse(BaseModel):
