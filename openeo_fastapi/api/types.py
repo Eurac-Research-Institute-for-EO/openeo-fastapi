@@ -4,7 +4,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
 
-from pydantic import AnyUrl, BaseModel, Extra, Field, RootModel, validator
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 
 class STACConformanceClasses(Enum):
@@ -78,7 +78,7 @@ class RFC3339Datetime(RootModel[str]):
         description="", pattern=r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z"
     )
 
-    @validator("root", pre=True)
+    @field_validator("root", mode="before")
     def ensure_non_fractional_and_timezone(cls, v):
         if isinstance(v, datetime.datetime):
             return v.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -159,7 +159,7 @@ class File(BaseModel):
         description="Path of the file, relative to the root directory of the user's server-side workspace.\nMUST NOT start with a slash `/` and MUST NOT be url-encoded.\n\nThe Windows-style path name component separator `\\` is not supported,\nalways use `/` instead.\n\nNote: The pattern only specifies a minimal subset of invalid characters.\nThe back-ends MAY enforce additional restrictions depending on their OS/environment.",
         example="folder/file.txt",
     )
-    size: Optional[int] = Field(None, description="File size in bytes.", example=1024)
+    size: Optional[int] = Field(None, description="File size in bytes.", json_schema_extra={'example': 1024})
     modified: Optional[RFC3339Datetime] = Field(
         None,
         description="Date and time the file has lastly been modified, formatted as a [RFC 3339](https://www.rfc-editor.org/rfc/RFC3339Datetime.html) date-time.",
@@ -175,8 +175,7 @@ class UsageMetric(BaseModel):
 
 class Usage(BaseModel):
     """Model to capture the usage of a job."""
-    class Config:
-        extra = Extra.allow
+    model_config = ConfigDict(extra="allow")
 
     cpu: Optional[UsageMetric] = Field(
         None,
@@ -420,8 +419,7 @@ class Dimension(BaseModel):
         description="The unit for the step value.",
     )
 
-    class Config:
-        extra = Extra.allow
+    model_config = ConfigDict(extra="allow")
 
 
 class Spatial(BaseModel):
@@ -435,7 +433,7 @@ class Spatial(BaseModel):
             "clusters of data.\nClients only interested in the overall spatial extent will "
             "only need to access the first item in each array."
         ),
-        min_items=1,
+        min_length=1,
     )
 
 
@@ -450,7 +448,7 @@ class Temporal(BaseModel):
             "identify clusters of data. Clients only interested in the overall extent will"
             "only need to access the first item in each array."
         ),
-        min_items=1,
+        min_length=1,
     )
 
 

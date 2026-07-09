@@ -3,7 +3,7 @@ import uuid
 from enum import Enum
 from typing import Any, List, Optional, TypedDict, Union
 
-from pydantic import AnyUrl, BaseModel, Extra, Field, validator
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field, field_validator
 
 from openeo_fastapi.api.types import (
     Billing,
@@ -182,8 +182,7 @@ class UdfRuntimesGetResponse(BaseModel):
 
     pass
 
-    class Config:
-        extra = Extra.allow
+    model_config = ConfigDict(extra="allow")
 
 
 class GrantType(Enum):
@@ -371,9 +370,7 @@ class Collection(BaseModel):
         ),
     )
 
-    class Config:
-        extra = Extra.allow
-        allow_population_by_field_name = True
+    model_config = ConfigDict(extra="allow")
 
 
 class Collections(TypedDict, total=False):
@@ -409,8 +406,7 @@ class ProcessGraphWithMetadata(Process):
     returns: Optional[Any] = None
     process_graph: Any = None
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ProcessGraphsGetResponse(BaseModel):
@@ -454,7 +450,7 @@ class BatchJob(BaseModel):
         description="Metrics about the resource usage of the batch job.\n\nBack-ends are not expected to update the metrics while processing data,\nso the metrics can only be available after the job has been finished\nor has errored.\nFor usage metrics during processing, metrics can better be added to the\nlogs (e.g. `GET /jobs/{job_id}/logs`) with the same schema.",
     )
 
-    @validator("job_id", pre=True, always=True)
+    @field_validator("job_id", mode="before")
     def as_str(cls, v):
         if isinstance(v, str):
             return v
@@ -463,8 +459,7 @@ class BatchJob(BaseModel):
         else:
             raise ValueError(f"Job id can only be of type UUID or str.")
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class JobsGetResponse(BaseModel):

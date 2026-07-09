@@ -1,8 +1,8 @@
 """Defining the settings to be used at the application layer of the API."""
 
-from typing import Any, ClassVar, Optional
+from typing import ClassVar, Optional
 
-from pydantic import HttpUrl, validator
+from pydantic import HttpUrl, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -56,20 +56,18 @@ class AppSettings(BaseSettings):
     STAC_COLLECTIONS_WHITELIST: Optional[list[str]]
     """The collection ids to filter by when proxying to the Stac catalogue."""
 
-    @validator("STAC_API_URL")
+    @field_validator("STAC_API_URL")
     def ensure_endswith_slash(cls, v: str) -> str:
         """Ensure the STAC_API_URL ends with a trailing slash."""
         if v.endswith("/"):
             return v
         return v.__add__("/")
 
-    @validator("OIDC_POLICIES", pre=True)
+    @field_validator("OIDC_POLICIES", mode="before")
     def split_oidc_policies_str_to_list(cls, v: list) -> str:
         """Ensure the OIDC_POLICIES are split and formatted correctly."""
 
         if isinstance(v, str):
-            # We shouldn't have a string here. But in some cases where the settings where taken from code and not an env variable
-            # the config function parse_env_var will not execute. Reclean the value here if that is the case.
             v = [str(x) for x in v.split("&&") if x != ""]
 
         if not v:
@@ -78,7 +76,6 @@ class AppSettings(BaseSettings):
         cleaned_policies = []
         for policy in v:
             try:
-                # TODO Could add a class to handle each oidc policy and return that list instead of just checking value unpacking.
                 no_spaces = policy.replace(" ", "")
                 key, value = no_spaces.split(",")
             except ValueError:
@@ -89,14 +86,10 @@ class AppSettings(BaseSettings):
             cleaned_policies.append(no_spaces)
         return cleaned_policies
 
-    class Config:
-        """Pydantic model class config."""
-
-        @classmethod
-        def parse_env_var(cls, field_name: str, raw_val: str) -> Any:
-            """Parse any variables and handle and csv lists into python list type."""
-            if field_name == "STAC_COLLECTIONS_WHITELIST":
-                return [str(x) for x in raw_val.split(",")]
-            elif field_name == "OIDC_POLICIES":
-                return [str(x) for x in raw_val.split("&&") if x != ""]
-            return cls.json_loads(raw_val)
+    @field_validator("STAC_COLLECTIONS_WHITELIST", mode="before")
+    @classmethod
+    def parse_csv(cls, v: str) -> list:
+        """Parse CSV environment variable into list."""
+        if isinstance(v, str):
+            return [str(x) for x in v.split(",")]
+        return v
