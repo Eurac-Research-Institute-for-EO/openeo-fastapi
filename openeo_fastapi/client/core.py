@@ -257,12 +257,11 @@ class OpenEOCore:
                 "title": "EOAP-CWL",
                 "type": "language",
                 "default": "1",
-           "versions": {
-    "1": {
-        "description": "EOAP-CWL via Calrissian on Kubernetes",
-        "libraries": {}
-    }
-}
-
+                "versions": {
+                    "1": {
+                        "description": "EOAP-CWL via Calrissian on Kubernetes",
+                        "libraries": {},
+                    }
+                },
             }
         }
