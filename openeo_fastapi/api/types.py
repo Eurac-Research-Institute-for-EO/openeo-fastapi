@@ -256,7 +256,7 @@ class LogEntry(BaseModel):
         description="An unique identifier for the log message, could simply be an incrementing number.",
         json_schema_extra={"example": "1"},
     )
-    code: Optional[str]
+    code: Optional[str] = None
     level: Level = Field(
         ...,
         description="The severity level of the log entry.\n\nThe order of the levels is as follows (from high to low severity): `error`, `warning`, `info`, `debug`.\n\nThe level `error` usually stops processing the data.",
@@ -282,8 +282,8 @@ class LogEntry(BaseModel):
         None,
         description="Describes where the log entry originates from.\n\nThe first element of the array is the process that has triggered the log entry, the second element is the parent of the process that has triggered the log entry, etc. This pattern is followed until the root of the process graph.",
     )
-    usage: Optional[Usage]
-    links: Optional[list[Link]]
+    usage: Optional[Usage] = None
+    links: Optional[list[Link]] = None
 
 
 class Process(BaseModel):

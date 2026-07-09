@@ -127,7 +127,7 @@ class IssuerHandler(BaseModel):
     """General token handler for querying provided tokens against issuers."""
 
     issuer_uri: str
-    policies: list[str] = None
+    policies: Optional[list[str]] = None
 
     @field_validator("issuer_uri", mode="before")
     def remove_trailing_slash(cls, v, values, **kwargs):

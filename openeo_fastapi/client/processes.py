@@ -60,7 +60,7 @@ class UserDefinedProcessGraph(BaseModel):
 
     id: str
     user_id: uuid.UUID
-    process_graph: dict = None
+    process_graph: Optional[dict] = None
     created: datetime.datetime
     summary: Optional[str] = None
     description: Optional[str] = None

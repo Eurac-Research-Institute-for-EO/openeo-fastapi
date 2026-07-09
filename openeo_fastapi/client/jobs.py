@@ -78,8 +78,8 @@ class Job(BaseModel):
     status: Status
     user_id: uuid.UUID
     created: datetime.datetime
-    title: Optional[str]
-    description: Optional[str]
+    title: Optional[str] = None
+    description: Optional[str] = None
     synchronous: bool = False
 
     model_config = ConfigDict(
