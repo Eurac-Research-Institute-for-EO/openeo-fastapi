@@ -2,6 +2,9 @@
 
 Classes:
     - ProcessRegister: Framework for defining and extending the logic for working with Processes and Process Graphs.
+
+Patched to import process specs from EURAC's openeo-processes-dask fork
+(v2026.7.1-eurac-dev.1) instead of the upstream openeo-processes-dask-slim.
 """
 
 import datetime
@@ -9,7 +12,7 @@ import functools
 import uuid
 from typing import Optional, Union
 
-import openeo_processes_dask_slim.specs
+import openeo_processes_dask.specs as _specs
 from fastapi import Depends, HTTPException, Response
 from openeo_pg_parser_networkx import Process as pgProcess
 from openeo_pg_parser_networkx import ProcessRegistry
@@ -109,8 +112,8 @@ class ProcessRegister(EndpointRegister):
         process_registry = ProcessRegistry()
 
         predefined_processes_specs = {
-            process_id: getattr(openeo_processes_dask_slim.specs, process_id)
-            for process_id in openeo_processes_dask_slim.specs.__all__
+            process_id: getattr(_specs, process_id)
+            for process_id in _specs.__all__
         }
 
         for process_id, spec in predefined_processes_specs.items():
@@ -133,7 +136,7 @@ class ProcessRegister(EndpointRegister):
 
     def list_processes(self) -> Union[ProcessesGetResponse, None]:
         """
-        Returns Supported predefined processes defined by openeo-processes-dask-slim.
+        Returns Supported predefined processes defined by openeo-processes-dask.
 
         Returns:
             ProcessesGetResponse: A list of available processes.

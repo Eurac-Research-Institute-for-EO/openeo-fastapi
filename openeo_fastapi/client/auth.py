@@ -203,12 +203,11 @@ class IssuerHandler(BaseModel):
                 break
         if rsa_key:
             # Validate the token and verify claims
+            # EURAC FIX: Disable audience validation as Keycloak tokens have 'aud' set to 'account'
+            # which doesn't match any expected audience. The issuer validation is still performed.
             payload = jwt.decode(
-                token,
-                rsa_key,
-                algorithms=ALGORITHMS,
-                issuer=self.issuer_uri,
-                options={"verify_aud": False},
+                token, rsa_key, algorithms=ALGORITHMS, issuer=self.issuer_uri,
+                options={"verify_aud": False}
             )
             return payload
 
