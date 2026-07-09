@@ -30,7 +30,6 @@ from openeo_fastapi.client.jobs import JobsRegister
 from openeo_fastapi.client.processes import ProcessRegister
 from openeo_fastapi.client.settings import AppSettings
 
-
 APPLICATION_ENDPOINTS = [
     Endpoint(
         path="/",
@@ -52,10 +51,7 @@ APPLICATION_ENDPOINTS = [
         path="/file_formats",
         methods=["GET"],
     ),
-    Endpoint(
-        path="/udf_runtimes",
-        methods=["GET"]
-    )
+    Endpoint(path="/udf_runtimes", methods=["GET"]),
 ]
 
 
@@ -123,7 +119,13 @@ class OpenEOCore:
             billing=self.billing,
             links=self.links,
             endpoints=self._combine_endpoints(),
-            output_formats={k: v for k, v in self.get_file_formats().dict(exclude_none=True).get("output", {}).items()},
+            output_formats={
+                k: v
+                for k, v in self.get_file_formats()
+                .model_dump(exclude_none=True)
+                .get("output", {})
+                .items()
+            },
         )
 
     def get_credentials_oidc(self) -> CredentialsOidcGetResponse:

@@ -9,12 +9,14 @@ from pydantic import AnyUrl, BaseModel, ConfigDict, Field, RootModel, field_vali
 
 class STACConformanceClasses(Enum):
     """Available conformance classes with STAC."""
+
     CORE = "https://api.stacspec.org/v1.0.0/core"
     COLLECTIONS = "https://api.stacspec.org/v1.0.0/collections"
 
 
 class DinensionEnum(Enum):
     """Dimension enum."""
+
     spatial = "spatial"
     temporal = "temporal"
     bands = "bands"
@@ -24,11 +26,13 @@ class DinensionEnum(Enum):
 
 class Type5(Enum):
     """Catalog enum."""
+
     Catalog = "Catalog"
 
 
 class Method(Enum):
     """HTTP Methods enum."""
+
     GET = "GET"
     HEAD = "HEAD"
     POST = "POST"
@@ -40,6 +44,7 @@ class Method(Enum):
 
 class Status(Enum):
     """Job Status enum."""
+
     created = "created"
     queued = "queued"
     running = "running"
@@ -50,6 +55,7 @@ class Status(Enum):
 
 class Level(Enum):
     """Log level enum."""
+
     error = "error"
     warning = "warning"
     info = "info"
@@ -58,13 +64,16 @@ class Level(Enum):
 
 class GisDataType(Enum):
     """Data type enum."""
+
     raster = "raster"
     vector = "vector"
     table = "table"
     other = "other"
 
+
 class Role(Enum):
     """Role for collection provider."""
+
     producer = "producer"
     licensor = "licensor"
     processor = "processor"
@@ -75,7 +84,8 @@ class RFC3339Datetime(RootModel[str]):
     """Model to consistently represent datetimes as strings compliant to RFC3339Datetime."""
 
     root: str = Field(
-        description="", pattern=r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z"
+        description="",
+        pattern=r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z",
     )
 
     @field_validator("root", mode="before")
@@ -87,6 +97,7 @@ class RFC3339Datetime(RootModel[str]):
 
 class Endpoint(BaseModel):
     """Model to capture the available endpoint and it's accepted models."""
+
     path: str = Field(
         ...,
         description="Path to the endpoint, relative to the URL of this endpoint. In general the paths MUST follow the paths specified in the openAPI specification as closely as possible. Therefore, paths MUST be prepended with a leading slash, but MUST NOT contain a trailing slash. Variables in the paths MUST be placed in curly braces and follow the parameter names in the openAPI specification, e.g. `{job_id}`.",
@@ -99,15 +110,16 @@ class Endpoint(BaseModel):
 
 class Plan(BaseModel):
     """Model to capture the the plan the user has subscribe to."""
+
     name: str = Field(
         ...,
         description="Name of the plan. It MUST be accepted in a *case insensitive* manner throughout the API.",
-        example="free",
+        json_schema_extra={"example": "free"},
     )
     description: str = Field(
         ...,
         description="A description that gives a rough overview over the plan.\n\n[CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich text representation.",
-        example="Free plan for testing.",
+        json_schema_extra={"example": "Free plan for testing."},
     )
     paid: bool = Field(
         ...,
@@ -116,65 +128,73 @@ class Plan(BaseModel):
     url: Optional[AnyUrl] = Field(
         None,
         description="URL to a web page with more details about the plan.",
-        example="http://cool-cloud-corp.com/plans/free-plan",
+        json_schema_extra={"example": "http://cool-cloud-corp.com/plans/free-plan"},
     )
 
 
 class Billing(BaseModel):
     """Model to capture the billing options that are available at the backend."""
+
     currency: str = Field(
         ...,
         description="The currency the back-end is billing in. The currency MUST be either a valid currency code as defined in ISO-4217 or a proprietary currency, e.g. tiles or back-end specific credits. If set to the default value `null`, budget and costs are not supported by the back-end and users can't be charged.",
-        example="USD",
+        json_schema_extra={"example": "USD"},
     )
     default_plan: Optional[str] = Field(
         None,
         description="Name of the default plan to use when the user doesn't specify a plan or has no default plan has been assigned for the user.",
-        example="free",
+        json_schema_extra={"example": "free"},
     )
     plans: Optional[list[Plan]] = Field(
         None,
         description="Array of plans",
-        example=[
-            {
-                "name": "free",
-                "description": "Free plan. Calculates one tile per second and a maximum amount of 100 tiles per hour.",
-                "url": "http://cool-cloud-corp.com/plans/free-plan",
-                "paid": False,
-            },
-            {
-                "name": "premium",
-                "description": "Premium plan. Calculates unlimited tiles and each calculated tile costs 0.003 USD.",
-                "url": "http://cool-cloud-corp.com/plans/premium-plan",
-                "paid": True,
-            },
-        ],
+        json_schema_extra={
+            "example": [
+                {
+                    "name": "free",
+                    "description": "Free plan. Calculates one tile per second and a maximum amount of 100 tiles per hour.",
+                    "url": "http://cool-cloud-corp.com/plans/free-plan",
+                    "paid": False,
+                },
+                {
+                    "name": "premium",
+                    "description": "Premium plan. Calculates unlimited tiles and each calculated tile costs 0.003 USD.",
+                    "url": "http://cool-cloud-corp.com/plans/premium-plan",
+                    "paid": True,
+                },
+            ]
+        },
     )
 
 
 class File(BaseModel):
     """Model to capture the stat information of a file stored at the backend."""
+
     path: str = Field(
         ...,
         description="Path of the file, relative to the root directory of the user's server-side workspace.\nMUST NOT start with a slash `/` and MUST NOT be url-encoded.\n\nThe Windows-style path name component separator `\\` is not supported,\nalways use `/` instead.\n\nNote: The pattern only specifies a minimal subset of invalid characters.\nThe back-ends MAY enforce additional restrictions depending on their OS/environment.",
-        example="folder/file.txt",
+        json_schema_extra={"example": "folder/file.txt"},
     )
-    size: Optional[int] = Field(None, description="File size in bytes.", json_schema_extra={'example': 1024})
+    size: Optional[int] = Field(
+        None, description="File size in bytes.", json_schema_extra={"example": 1024}
+    )
     modified: Optional[RFC3339Datetime] = Field(
         None,
         description="Date and time the file has lastly been modified, formatted as a [RFC 3339](https://www.rfc-editor.org/rfc/RFC3339Datetime.html) date-time.",
-        example="2018-01-03T10:55:29Z",
+        json_schema_extra={"example": "2018-01-03T10:55:29Z"},
     )
 
 
 class UsageMetric(BaseModel):
     """Model to capture the value and unit of a given metric."""
+
     value: float
     unit: str
 
 
 class Usage(BaseModel):
     """Model to capture the usage of a job."""
+
     model_config = ConfigDict(extra="allow")
 
     cpu: Optional[UsageMetric] = Field(
@@ -205,43 +225,49 @@ class Usage(BaseModel):
 
 class Link(BaseModel):
     """Model to describe the information for a provided URL."""
+
     rel: str = Field(
         ...,
         description="Relationship between the current document and the linked document. SHOULD be a [registered link relation type](https://www.iana.org/assignments/link-relations/link-relations.xml) whenever feasible.",
-        example="related",
+        json_schema_extra={"example": "related"},
     )
     href: Union[AnyUrl, Path] = Field(
         ...,
         description="The value MUST be a valid URL.",
-        example="https://example.openeo.org",
+        json_schema_extra={"example": "https://example.openeo.org"},
     )
     type: Optional[str] = Field(
         None,
         description="The value MUST be a string that hints at the format used to represent data at the provided URI, preferably a media (MIME) type.",
-        example="text/html",
+        json_schema_extra={"example": "text/html"},
     )
     title: Optional[str] = Field(
-        None, description="Used as a human-readable label for a link.", example="openEO"
+        None,
+        description="Used as a human-readable label for a link.",
+        json_schema_extra={"example": "openEO"},
     )
 
 
 class LogEntry(BaseModel):
     """Model to describe the information for a given log line in job logs."""
+
     id: str = Field(
         ...,
         description="An unique identifier for the log message, could simply be an incrementing number.",
-        example="1",
+        json_schema_extra={"example": "1"},
     )
     code: Optional[str]
     level: Level = Field(
         ...,
         description="The severity level of the log entry.\n\nThe order of the levels is as follows (from high to low severity): `error`, `warning`, `info`, `debug`.\n\nThe level `error` usually stops processing the data.",
-        example="error",
+        json_schema_extra={"example": "error"},
     )
     message: str = Field(
         ...,
         description="A message explaining the log entry.",
-        example="Can't load the UDF file from the URL `https://example.com/invalid/file.txt`. Server responded with error 404.",
+        json_schema_extra={
+            "example": "Can't load the UDF file from the URL `https://example.com/invalid/file.txt`. Server responded with error 404."
+        },
     )
     time: Optional[RFC3339Datetime] = Field(
         None,
@@ -262,6 +288,7 @@ class LogEntry(BaseModel):
 
 class Process(BaseModel):
     """Model to describe a process that is exposed by the api."""
+
     id: Optional[str] = None
     summary: Optional[str] = None
     description: Optional[str] = None
@@ -283,22 +310,24 @@ class Process(BaseModel):
 
 class Error(BaseModel):
     """Model to describe the information of a captured exception by the api."""
+
     id: Optional[str] = Field(
         None,
         description="A back-end MAY add a unique identifier to the error response to be able to log and track errors with further non-disclosable details. A client could communicate this id to a back-end provider to get further information.",
-        example="550e8400-e29b-11d4-a716-446655440000",
+        json_schema_extra={"example": "550e8400-e29b-11d4-a716-446655440000"},
     )
     code: str
     message: str = Field(
         ...,
         description="A message explaining what the client may need to change or what difficulties the server is facing.",
-        example="Parameter 'sample' is missing.",
+        json_schema_extra={"example": "Parameter 'sample' is missing."},
     )
     links: Optional[list[Link]] = None
 
 
 class FileFormat(BaseModel):
     """Model to describe a file format supported by the processing backend."""
+
     title: str
     description: Optional[str] = None
     gis_data_types: list[GisDataType] = Field(
@@ -320,37 +349,41 @@ class FileFormat(BaseModel):
 
 class Storage(BaseModel):
     """Model to describe the storage resources available to a given user."""
+
     free: int = Field(
         ...,
         description="Free storage space in bytes, which is still available to the user. Effectively, this is the disk quota minus the used space by the user, e.g. user-uploaded files and job results.",
-        example=536870912,
+        json_schema_extra={"example": 536870912},
     )
     quota: int = Field(
         ...,
         description="Maximum storage space (disk quota) in bytes available to the user.",
-        example=1073741824,
+        json_schema_extra={"example": 1073741824},
     )
 
 
 class Version(BaseModel):
     """Model to describe the version of an api that is available."""
+
     url: AnyUrl = Field(
         ...,
         description="*Absolute* URLs to the service.",
-        example="https://example.com/api/v1.0",
+        json_schema_extra={"example": "https://example.com/api/v1.0"},
     )
     production: Optional[bool] = None
     api_version: str = Field(
         ...,
         description="Version number of the openEO specification this back-end implements.",
     )
-    
+
+
 class StacProvider(BaseModel):
     """Model to describe the provider of a given stac resource."""
+
     name: str = Field(
         ...,
         description="The name of the organization or the individual.",
-        example="Cool EO Cloud Corp",
+        json_schema_extra={"example": "Cool EO Cloud Corp"},
     )
     description: Optional[str] = Field(
         None,
@@ -359,7 +392,7 @@ class StacProvider(BaseModel):
             "processors and producers, hosting details for hosts or basic contact information."
             "CommonMark 0.29 syntax MAY be used for rich text representation."
         ),
-        example="No further processing applied.",
+        json_schema_extra={"example": "No further processing applied."},
     )
     roles: Optional[list[Role]] = Field(
         None,
@@ -372,14 +405,14 @@ class StacProvider(BaseModel):
             "host is the actual provider offering the data on their storage. There SHOULD be no more than"
             "one host, specified as last element of the list."
         ),
-        example=["producer", "licensor", "host"],
+        json_schema_extra={"example": ["producer", "licensor", "host"]},
     )
     url: Optional[AnyUrl] = Field(
         None,
         description=(
             "Homepage on which the provider describes the dataset and publishes contact information."
         ),
-        example="http://cool-eo-cloud-corp.com",
+        json_schema_extra={"example": "http://cool-eo-cloud-corp.com"},
     )
 
 
@@ -424,6 +457,7 @@ class Dimension(BaseModel):
 
 class Spatial(BaseModel):
     """Model to describe the spatial extent of a collection."""
+
     bbox: Optional[list[list[float]]] = Field(
         None,
         description=(
@@ -439,6 +473,7 @@ class Spatial(BaseModel):
 
 class Temporal(BaseModel):
     """Model to describe the temporal range of a collection."""
+
     interval: Optional[list[list[Any]]] = Field(
         None,
         description=(
@@ -454,6 +489,7 @@ class Temporal(BaseModel):
 
 class Extent(BaseModel):
     """Model to describe the complete spatiotemporal extent of a collection."""
+
     spatial: Spatial = Field(
         ...,
         description="The *potential* spatial extents of the features in the collection.",

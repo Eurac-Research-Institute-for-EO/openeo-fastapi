@@ -1,7 +1,7 @@
 """OpenEO Api class for preparing the FastApi object from the client that is provided by the user.
 """
 import attr
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from starlette.responses import JSONResponse, RedirectResponse
 
 from openeo_fastapi.api import models
@@ -479,6 +479,16 @@ class OpenEOApi:
             content=jsonable_encoder(exception.detail),
         )
 
+    async def default_json_content_type(self, request: Request, call_next):
+        if (
+            request.method in {"POST", "PUT", "PATCH"}
+            and "content-type" not in request.headers
+        ):
+            request.scope["headers"] = list(request.scope["headers"]) + [
+                (b"content-type", b"application/json")
+            ]
+        return await call_next(request)
+
     def __attrs_post_init__(self):
         """
         Post-init hook responsible for setting up the application upon instantiation of the class.
@@ -487,4 +497,5 @@ class OpenEOApi:
         self.register_core()
         self.register_get_capabilities()
         self.app.include_router(router=self.router)
+        self.app.middleware("http")(self.default_json_content_type)
         self.app.add_exception_handler(HTTPException, self.http_exception_handler)

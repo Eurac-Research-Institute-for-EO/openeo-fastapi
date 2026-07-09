@@ -1,0 +1,41 @@
+FROM python:3.12-slim
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+RUN apt-get update -qy && \
+    apt-get install -qy --no-install-recommends \
+        curl \
+        git \
+        postgresql \
+        postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV POETRY_VERSION=2.4.1
+RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
+
+RUN poetry config virtualenvs.in-project true
+
+RUN useradd -m -s /bin/bash runner
+
+RUN mkdir -p /app && chown runner:runner /app
+
+COPY pyproject.toml /app/
+
+USER runner
+WORKDIR /app
+
+RUN poetry install --with dev --no-root
+
+USER root
+COPY . /app/
+RUN chown -R runner:runner /app
+
+USER runner
+
+RUN poetry install --with dev
+
+RUN .venv/bin/pip install git+https://github.com/Eurac-Research-Institute-for-EO/openeo-processes-dask.git@v2026.7.1-eurac.1
+
+RUN poetry run pre-commit run --all-files
+
+CMD poetry run pytest --cov=openeo_fastapi --cov-report=xml -v
