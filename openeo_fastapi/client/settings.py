@@ -2,8 +2,7 @@
 
 from typing import Any, Optional
 
-from pydantic import HttpUrl, validator
-from pydantic_settings import BaseSettings
+from pydantic import BaseSettings, HttpUrl, validator
 
 
 class AppSettings(BaseSettings):
