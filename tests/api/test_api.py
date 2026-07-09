@@ -119,7 +119,8 @@ def test_get_udf_runtimes(core_api, app_settings):
 
     response = test_app.get(f"{app_settings.OPENEO_PREFIX}/udf_runtimes")
 
-    assert response.status_code == 501
+    assert response.status_code == 200
+    assert "EOAP-CWL" in response.json()
 
 
 def test_get_conformance(core_api, app_settings):
