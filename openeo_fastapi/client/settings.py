@@ -1,6 +1,6 @@
 """Defining the settings to be used at the application layer of the API."""
 
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 
 from pydantic import HttpUrl, validator
 from pydantic_settings import BaseSettings
@@ -19,7 +19,7 @@ class AppSettings(BaseSettings):
     """The API description to be provided to FastAPI."""
     OPENEO_VERSION: str = "1.1.0"
     """The OpenEO Api specification version supported in this deployment of the API."""
-    OPENEO_PREFIX = f"/openeo/{OPENEO_VERSION}"
+    OPENEO_PREFIX: ClassVar[str] = f"/openeo/{OPENEO_VERSION}"
     """The OpenEO prefix to be used when creating the endpoint urls."""
     OIDC_PROVIDER_TITLE: Optional[str] = "EGI Check-in"
     """The provider title that gets shown when authenticating in the front-end."""
